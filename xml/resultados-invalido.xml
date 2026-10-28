@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Pruebas con datos inválidos.
+  Este documento está BIEN FORMADO pero NO ES VÁLIDO: cada prueba tiene
+  exactamente un error respecto a xsd/resultados.xsd, para que una sola
+  ejecución del validador muestre los diez diagnósticos.
+  La prueba 4, la jornada 11 y la segunda jornada 10 usan partidos
+  inventados; solo sirven de prueba.
+-->
+<liga xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="../xsd/resultados.xsd"
+      nombre="Liga MX" torneo="Apertura 2026" temporada="2026-2027">
+  <jornada numero="10">
+
+    <!-- Prueba 1 (estructura): falta el equipo visitante -->
+    <partido id="P101" estado="finalizado">
+      <fecha>2026-09-27</fecha>
+      <hora>12:00</hora>
+      <estadio ciudad="Ciudad de México">Estadio Olímpico Universitario</estadio>
+      <equipoLocal abreviatura="UNAM">
+        <nombre>Pumas UNAM</nombre>
+      </equipoLocal>
+      <marcador>
+        <golesLocal>2</golesLocal>
+        <golesVisitante>3</golesVisitante>
+      </marcador>
+    </partido>
+
+    <!-- Prueba 2 (tipo de dato): tiros escritos con letra -->
+    <partido id="P102" estado="finalizado">
+      <fecha>2026-09-27</fecha>
+      <hora>19:00</hora>
+      <estadio ciudad="León">Estadio León</estadio>
+      <equipoLocal abreviatura="LEO">
+        <nombre>León</nombre>
+        <estadisticas>
+          <posesion>55.7</posesion>
+          <tiros>siete</tiros>
+          <tirosAPuerta>3</tirosAPuerta>
+          <faltas>14</faltas>
+          <tirosDeEsquina>1</tirosDeEsquina>
+          <tarjetas/>
+        </estadisticas>
+      </equipoLocal>
+      <equipoVisitante abreviatura="JUA">
+        <nombre>FC Juárez</nombre>
+      </equipoVisitante>
+      <marcador>
+        <golesLocal>2</golesLocal>
+        <golesVisitante>1</golesVisitante>
+      </marcador>
+    </partido>
+
+    <!-- Prueba 3 (rango): posesión capturada sin el punto decimal (53.3 → 533) -->
+    <partido id="P103" estado="finalizado">
+      <fecha>2026-09-27</fecha>
+      <hora>21:10</hora>
+      <estadio ciudad="Aguascalientes">Estadio Victoria</estadio>
+      <equipoLocal abreviatura="NCX">
+        <nombre>Necaxa</nombre>
+        <estadisticas>
+          <posesion>533</posesion>
+          <tiros>15</tiros>
+          <tirosAPuerta>6</tirosAPuerta>
+          <faltas>16</faltas>
+          <tirosDeEsquina>3</tirosDeEsquina>
+          <tarjetas/>
+        </estadisticas>
+      </equipoLocal>
+      <equipoVisitante abreviatura="AME">
+        <nombre>América</nombre>
+      </equipoVisitante>
+      <marcador>
+        <golesLocal>2</golesLocal>
+        <golesVisitante>4</golesVisitante>
+      </marcador>
+    </partido>
+
+    <!-- Prueba 4 (unicidad): Pumas juega por segunda vez en la jornada 10 -->
+    <partido id="P104" estado="programado">
+      <fecha>2026-09-27</fecha>
+      <hora>17:00</hora>
+      <estadio ciudad="Toluca">Estadio Nemesio Díez</estadio>
+      <equipoLocal abreviatura="TOL">
+        <nombre>Toluca</nombre>
+      </equipoLocal>
+      <equipoVisitante abreviatura="UNAM">
+        <nombre>Pumas UNAM</nombre>
+      </equipoVisitante>
+    </partido>
+
+  </jornada>
+  <jornada numero="11">
+
+    <!-- Prueba 5 (tipo de dato): fecha en formato DD/MM/AAAA -->
+    <partido id="P105" estado="programado">
+      <fecha>04/10/2026</fecha>
+      <hora>19:00</hora>
+      <estadio ciudad="Guadalupe">Estadio BBVA</estadio>
+      <equipoLocal abreviatura="MTY">
+        <nombre>Monterrey</nombre>
+      </equipoLocal>
+      <equipoVisitante abreviatura="TOL">
+        <nombre>Toluca</nombre>
+      </equipoVisitante>
+    </partido>
+
+    <!-- Prueba 6 (patrón): hora en formato de 12 horas -->
+    <partido id="P106" estado="programado">
+      <fecha>2026-10-04</fecha>
+      <hora>7:00 pm</hora>
+      <estadio ciudad="San Nicolás de los Garza">Estadio Universitario</estadio>
+      <equipoLocal abreviatura="UANL">
+        <nombre>Tigres UANL</nombre>
+      </equipoLocal>
+      <equipoVisitante abreviatura="GDL">
+        <nombre>Guadalajara</nombre>
+      </equipoVisitante>
+    </partido>
+
+    <!-- Prueba 7 (rango): gol en el minuto 95; la reposición se escribe
+         aparte: minuto="90" agregado="5" -->
+    <partido id="P107" estado="finalizado">
+      <fecha>2026-10-04</fecha>
+      <hora>21:00</hora>
+      <estadio ciudad="Torreón">Estadio Corona</estadio>
+      <equipoLocal abreviatura="SAN">
+        <nombre>Santos</nombre>
+      </equipoLocal>
+      <equipoVisitante abreviatura="PAC">
+        <nombre>Pachuca</nombre>
+      </equipoVisitante>
+      <marcador>
+        <golesLocal>1</golesLocal>
+        <golesVisitante>0</golesVisitante>
+        <gol equipo="local" minuto="95">Nombre del anotador</gol>
+      </marcador>
+    </partido>
+
+    <!-- Prueba 8 (texto vacío): el visitante no tiene nombre -->
+    <partido id="P108" estado="programado">
+      <fecha>2026-10-03</fecha>
+      <hora zona="UTC-07:00">19:00</hora>
+      <estadio ciudad="Tijuana">Estadio Caliente</estadio>
+      <equipoLocal abreviatura="TIJ">
+        <nombre>Tijuana</nombre>
+      </equipoLocal>
+      <equipoVisitante abreviatura="QRO">
+        <nombre></nombre>
+      </equipoVisitante>
+    </partido>
+
+    <!-- Prueba 9 (unicidad): id repetido; P101 ya existe en la jornada 10 -->
+    <partido id="P101" estado="programado">
+      <fecha>2026-10-04</fecha>
+      <hora>17:00</hora>
+      <estadio ciudad="León">Estadio León</estadio>
+      <equipoLocal abreviatura="LEO">
+        <nombre>León</nombre>
+      </equipoLocal>
+      <equipoVisitante abreviatura="AME">
+        <nombre>América</nombre>
+      </equipoVisitante>
+    </partido>
+
+  </jornada>
+
+  <!-- Prueba 10 (unicidad): segunda jornada con el número 10 -->
+  <jornada numero="10">
+    <partido id="P110" estado="programado">
+      <fecha>2026-09-26</fecha>
+      <hora>19:00</hora>
+      <estadio ciudad="Puebla">Estadio Cuauhtémoc</estadio>
+      <equipoLocal abreviatura="PUE">
+        <nombre>Puebla</nombre>
+      </equipoLocal>
+      <equipoVisitante abreviatura="ASL">
+        <nombre>Atlético de San Luis</nombre>
+      </equipoVisitante>
+    </partido>
+  </jornada>
+
+</liga>

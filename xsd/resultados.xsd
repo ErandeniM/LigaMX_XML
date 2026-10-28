@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  resultados.xsd
+  XML Schema (XSD 1.0) de los documentos XML con resultados y estadísticas
+  de partidos de la Liga MX. Fuente de los datos: ESPN México.
+
+  Organización: un solo elemento global (liga), que por eso es el único
+  que puede ser raíz, y tipos con nombre que se reutilizan; por ejemplo,
+  tipoEquipo sirve para el local y para el visitante.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <!-- ======================== Elemento raíz ======================== -->
+
+  <xs:element name="liga" type="tipoLiga">
+    <!-- Cada partido tiene un id distinto en todo el documento -->
+    <xs:key name="idPartido">
+      <xs:selector xpath="jornada/partido"/>
+      <xs:field xpath="@id"/>
+    </xs:key>
+    <!-- No puede haber dos jornadas con el mismo número -->
+    <xs:unique name="numeroJornada">
+      <xs:selector xpath="jornada"/>
+      <xs:field xpath="@numero"/>
+    </xs:unique>
+  </xs:element>
+
+  <!-- ===================== Estructura general ====================== -->
+
+  <!-- Apertura 2026: 18 equipos que se enfrentan una vez, en 17 jornadas -->
+  <xs:complexType name="tipoLiga">
+    <xs:sequence>
+      <xs:element name="jornada" type="tipoJornada" maxOccurs="17">
+        <!-- Un equipo juega una sola vez por jornada -->
+        <xs:unique name="equipoPorJornada">
+          <xs:selector xpath="partido/equipoLocal | partido/equipoVisitante"/>
+          <xs:field xpath="@abreviatura"/>
+        </xs:unique>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="nombre"    type="tipoTexto"     use="required"/>
+    <xs:attribute name="torneo"    type="tipoTorneo"    use="required"/>
+    <xs:attribute name="temporada" type="tipoTemporada" use="required"/>
+  </xs:complexType>
+
+  <!-- 18 equipos: a lo más 9 partidos por jornada -->
+  <xs:complexType name="tipoJornada">
+    <xs:sequence>
+      <xs:element name="partido" type="tipoPartido" maxOccurs="9"/>
+    </xs:sequence>
+    <xs:attribute name="numero" type="tipoNumeroJornada" use="required"/>
+  </xs:complexType>
+
+  <!-- Exactamente un local y un visitante, en ese orden.
+       El marcador es opcional: un partido programado aún no lo tiene. -->
+  <xs:complexType name="tipoPartido">
+    <xs:sequence>
+      <xs:element name="fecha"           type="xs:date"/>
+      <xs:element name="hora"            type="tipoHoraConZona"/>
+      <xs:element name="estadio"         type="tipoEstadio"/>
+      <xs:element name="equipoLocal"     type="tipoEquipo"/>
+      <xs:element name="equipoVisitante" type="tipoEquipo"/>
+      <xs:element name="marcador"        type="tipoMarcador" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id"     type="tipoIdPartido"     use="required"/>
+    <xs:attribute name="estado" type="tipoEstadoPartido" use="required"/>
+  </xs:complexType>
+
+  <!-- Hora de inicio. Por omisión, tiempo del centro de México;
+       un estadio en otra zona (Tijuana, por ejemplo) puede indicar la suya. -->
+  <xs:complexType name="tipoHoraConZona">
+    <xs:simpleContent>
+      <xs:extension base="tipoHora">
+        <xs:attribute name="zona" type="tipoZonaHoraria" default="UTC-06:00"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="tipoEstadio">
+    <xs:simpleContent>
+      <xs:extension base="tipoTexto">
+        <xs:attribute name="ciudad" type="tipoTexto" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <!-- =================== Equipos y estadísticas ==================== -->
+
+  <!-- Un solo tipo para equipoLocal y equipoVisitante -->
+  <xs:complexType name="tipoEquipo">
+    <xs:sequence>
+      <xs:element name="nombre"       type="tipoTexto"/>
+      <xs:element name="estadisticas" type="tipoEstadisticas" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="abreviatura" type="tipoAbreviatura" use="required"/>
+  </xs:complexType>
+
+  <!-- Cinco estadísticas obligatorias, dos opcionales y la lista de tarjetas -->
+  <xs:complexType name="tipoEstadisticas">
+    <xs:sequence>
+      <xs:element name="posesion"       type="tipoPorcentaje"/>
+      <xs:element name="tiros"          type="xs:nonNegativeInteger"/>
+      <xs:element name="tirosAPuerta"   type="xs:nonNegativeInteger"/>
+      <xs:element name="faltas"         type="xs:nonNegativeInteger"/>
+      <xs:element name="tirosDeEsquina" type="xs:nonNegativeInteger"/>
+      <xs:element name="fuerasDeLugar"  type="xs:nonNegativeInteger" minOccurs="0"/>
+      <xs:element name="atajadas"       type="xs:nonNegativeInteger" minOccurs="0"/>
+      <xs:element name="tarjetas"       type="tipoTarjetas"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Cero o más tarjetas -->
+  <xs:complexType name="tipoTarjetas">
+    <xs:sequence>
+      <xs:element name="tarjeta" type="tipoTarjeta" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- El contenido es el nombre del jugador -->
+  <xs:complexType name="tipoTarjeta">
+    <xs:simpleContent>
+      <xs:extension base="tipoTexto">
+        <xs:attribute name="color" type="tipoColorTarjeta" use="required"/>
+        <xs:attributeGroup ref="momentoDelPartido"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <!-- ========================== Marcador =========================== -->
+
+  <!-- Goles de cada lado y, opcionalmente, el detalle de cada gol -->
+  <xs:complexType name="tipoMarcador">
+    <xs:sequence>
+      <xs:element name="golesLocal"     type="xs:nonNegativeInteger"/>
+      <xs:element name="golesVisitante" type="xs:nonNegativeInteger"/>
+      <xs:element name="gol"            type="tipoGol" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- El contenido es el nombre del anotador.
+       equipo: lado al que se le cuenta el gol. En un autogol, el anotador
+       es del equipo contrario a ese lado. -->
+  <xs:complexType name="tipoGol">
+    <xs:simpleContent>
+      <xs:extension base="tipoTexto">
+        <xs:attribute name="equipo" type="tipoLado" use="required"/>
+        <xs:attributeGroup ref="momentoDelPartido"/>
+        <xs:attribute name="tipo"   type="tipoOrigenGol" default="jugada"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <!-- Minuto de una tarjeta o un gol. El tiempo de reposición va aparte:
+       45+1 se escribe minuto="45" agregado="1". -->
+  <xs:attributeGroup name="momentoDelPartido">
+    <xs:attribute name="minuto"   type="tipoMinuto" use="required"/>
+    <xs:attribute name="agregado" type="tipoAgregado"/>
+  </xs:attributeGroup>
+
+  <!-- ======================== Tipos simples ======================== -->
+
+  <!-- Texto con al menos un carácter. xs:token quita los espacios de los
+       extremos, así que un nombre vacío o formado solo por espacios no es válido. -->
+  <xs:simpleType name="tipoTexto">
+    <xs:restriction base="xs:token">
+      <xs:minLength value="1"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- "Apertura 2026", "Clausura 2027" -->
+  <xs:simpleType name="tipoTorneo">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="(Apertura|Clausura) [0-9]{4}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- "2026-2027" -->
+  <xs:simpleType name="tipoTemporada">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9]{4}-[0-9]{4}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- 1 a 17 -->
+  <xs:simpleType name="tipoNumeroJornada">
+    <xs:restriction base="xs:positiveInteger">
+      <xs:maxInclusive value="17"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- "P" y tres dígitos: P001 -->
+  <xs:simpleType name="tipoIdPartido">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="P[0-9]{3}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="tipoEstadoPartido">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="programado"/>
+      <xs:enumeration value="en_juego"/>
+      <xs:enumeration value="finalizado"/>
+      <xs:enumeration value="suspendido"/>
+      <xs:enumeration value="pospuesto"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- HH:MM en formato de 24 horas: "19:00". No se usa xs:time porque
+       exige segundos ("19:00:00"). xs:token ignora espacios en los extremos. -->
+  <xs:simpleType name="tipoHora">
+    <xs:restriction base="xs:token">
+      <xs:pattern value="([01][0-9]|2[0-3]):[0-5][0-9]"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Desfase respecto a UTC: "UTC-06:00", "UTC-07:00" -->
+  <xs:simpleType name="tipoZonaHoraria">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="UTC[+\-](0[0-9]|1[0-4]):(00|30|45)"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Dos a cuatro mayúsculas, como en ESPN: "LEO", "UNAM" -->
+  <xs:simpleType name="tipoAbreviatura">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Z]{2,4}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Porcentaje de 0 a 100 con un decimal como máximo: 54.3 -->
+  <xs:simpleType name="tipoPorcentaje">
+    <xs:restriction base="xs:decimal">
+      <xs:minInclusive value="0"/>
+      <xs:maxInclusive value="100"/>
+      <xs:fractionDigits value="1"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- 1 a 90: la fase regular no tiene tiempos extra, y lo que ocurre
+       en la reposición se escribe con agregado (90+5, no 95) -->
+  <xs:simpleType name="tipoMinuto">
+    <xs:restriction base="xs:positiveInteger">
+      <xs:maxInclusive value="90"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Minutos de reposición: 1 a 30 -->
+  <xs:simpleType name="tipoAgregado">
+    <xs:restriction base="xs:positiveInteger">
+      <xs:maxInclusive value="30"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="tipoColorTarjeta">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="amarilla"/>
+      <xs:enumeration value="roja"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="tipoLado">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="local"/>
+      <xs:enumeration value="visitante"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Origen del gol. Autogol: lo anota un jugador del equipo contrario. -->
+  <xs:simpleType name="tipoOrigenGol">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="jugada"/>
+      <xs:enumeration value="penal"/>
+      <xs:enumeration value="autogol"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>
